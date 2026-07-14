@@ -1,25 +1,35 @@
-package com.orion.echoes.mars;
+package com.orion.echoes;
 
-import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.ScreenUtils;
-import screens.GameScreen;
+import managers.AssetManager;
+import screens.MenuScreen;
 
 public class EchoesMarsGame extends Game {
     private SpriteBatch batch;
+    private AssetManager assets;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
-
-        setScreen(new GameScreen(this,batch));
+        assets = new AssetManager();
+        assets.load(); // Carrega todas as texturas
+        // Começa no Menu
+        setScreen(new MenuScreen(this, batch, assets));
     }
 
     @Override
     public void dispose() {
-        batch.dispose();
+        if (batch != null) batch.dispose();
+        if (assets != null) assets.dispose();
         super.dispose();
+    }
+
+    public SpriteBatch getBatch() {
+        return batch;
+    }
+
+    public AssetManager getAssets() {
+        return assets;
     }
 }

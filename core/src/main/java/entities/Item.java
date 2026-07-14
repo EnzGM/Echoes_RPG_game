@@ -1,47 +1,36 @@
 package entities;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-
+import managers.AssetManager;
 
 public class Item extends Entidade {
-
     private final Sprite sprite;
-
     private final String tipo;
-
     private boolean coletado = false;
 
-    public Item(float x, float y, String tipo) {
-        super(x, y, tipo.equals("abrigo") ? 320 : 32, tipo.equals("abrigo") ? 200:32);
+    public Item(float x, float y, String tipo, AssetManager assets) {
+        super(x, y, tipo.equals("abrigo") ? 320 : 32, tipo.equals("abrigo") ? 220 : 48);
         this.tipo = tipo;
 
-        String fileName;
         switch (tipo) {
             case "oxigenio":
-                fileName = "oxigenio.png";
+                sprite = new Sprite(assets.oxigenioTexture);
+                sprite.setSize(32, 48);
                 break;
             case "comida":
-                fileName = "comida.png";
+                sprite = new Sprite(assets.comidaTexture);
+                sprite.setSize(40, 40);
                 break;
             case "abrigo":
-                fileName = "abrigo.png";
+                sprite = new Sprite(assets.abrigoTexture);
+                sprite.setSize(320, 226);
                 break;
             default:
-                fileName = "oxigenio.png";
+                sprite = new Sprite(assets.oxigenioTexture);
+                sprite.setSize(32, 32);
                 break;
         }
-        Texture texture = new Texture(Gdx.files.internal("textures/" + fileName));
-        sprite = new Sprite(texture);
-
-        if (tipo.equals("abrigo")) {
-            sprite.setSize(320, 420);
-        } else {
-            sprite.setSize(32,32);
-        }
-
     }
 
     @Override
@@ -56,11 +45,14 @@ public class Item extends Entidade {
     }
 
     @Override
-    public void dispose () {sprite.getTexture().dispose();}
+    public void dispose() {
+        // Textura gerenciada pelo AssetManager
+    }
 
-    public String getTipo() {return tipo;}
+    public String getTipo() { return tipo; }
+    public boolean isColetado() { return coletado; }
 
-    public boolean isColetado() {return coletado;}
-
-    public void coletar() {this.coletado = true; }
+    public void coletar() {
+        this.coletado = true;
+    }
 }
