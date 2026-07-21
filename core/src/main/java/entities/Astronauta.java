@@ -109,4 +109,8 @@ public class Astronauta extends Entidade implements Interagivel {
     public boolean isMorto() {
         return !ativo;
     }
+
+    public boolean isMoving() {
+        return velocity.len() > 5f;
+    }
 }

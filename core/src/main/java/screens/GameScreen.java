@@ -13,6 +13,9 @@ import com.orion.echoes.EchoesMarsGame;
 import entities.Astronauta;
 import entities.Item;
 import managers.AssetManager;
+import managers.ParticleManager;
+
+import java.lang.reflect.Parameter;
 
 public class GameScreen implements Screen {
     private final EchoesMarsGame game;
@@ -23,6 +26,11 @@ public class GameScreen implements Screen {
     private Viewport viewport;
     private Array<Item> itens;
     private Hud hud;
+    private ParticleManager particleManager;
+    private float poeiraTimer = 0f;
+    private float faiscaTimer = 0f;
+    private float alertaTimer = 0f;
+    private Item abrigo = null;
     private boolean pausado = false;
     private final float TEMPO_VITORIA = 60f; // 60 segundos para vencer
 
@@ -47,8 +55,23 @@ public class GameScreen implements Screen {
         itens.add(new Item(700, 200, "oxigenio", assets));
         itens.add(new Item(900, 350, "abrigo", assets));
 
+        for (Item item : itens) {
+            if (item.getTipo().equals("abrigo")){
+                abrigo = item;
+                break;
+            }
+        }
+
         hud = new Hud(assets);
         pausado = false;
+
+        particleManager = new ParticleManager();
+        particleManager.loadEffect("poeira", "particles/poeira.p", "particles/");
+        particleManager.loadEffect("faisca", "particles/faisca.p", "particles/");
+        particleManager.loadEffect("alerta", "particles/alerta_oxigenio.p", "particles/");
+        particleManager.loadEffect("coleta", "particles/coleta.p", "particles/");
+        particleManager.loadEffect("explosao", "particles/explosao.p", "particles/");
+        particleManager.loadEffect("rastro", "particles/rastro.p", "particles/");
     }
 
     @Override
@@ -61,6 +84,7 @@ public class GameScreen implements Screen {
         if (pausado) {
             Gdx.gl.glClearColor(0.1f, 0.1f, 0.15f, 1f);
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
             batch.begin();
             assets.font.getData().setScale(2.5f);
             assets.font.setColor(1f, 1f, 0.6f, 1f);
@@ -73,9 +97,15 @@ public class GameScreen implements Screen {
         }
 
         astronauta.update(delta);
+        particleManager.update(delta);
 
         // Verifica morte
         if (astronauta.isMorto()) {
+            particleManager.play("explosao",
+                astronauta.getPosition().x + 16,
+                astronauta.getPosition().y + 20,
+                1.5f);
+
             String motivo = astronauta.getOxigenio() <= 0 ?
                 "Voce morreu por falta de Oxigenio!" :
                 "Voce morreu por falta de Energia!";
@@ -104,12 +134,21 @@ public class GameScreen implements Screen {
         for (Item item : itens) {
             item.render(batch);
         }
+
         astronauta.render(batch);
+
+        particleManager.render(batch);
 
         // Colisão
         boolean dentroDoAbrigo = false;
         for (Item item : itens) {
             if (!item.isColetado() && astronauta.getBounds().overlaps(item.getBounds())) {
+
+                particleManager.play("coleta",
+                    item.getPosition().x + 16,
+                    item.getPosition().y + 16,
+                    1.1f);
+
                 if (item.getTipo().equals("oxigenio")) {
                     astronauta.oxigenioRecuperada(30);
                     item.coletar();
@@ -126,6 +165,25 @@ public class GameScreen implements Screen {
 
         batch.end();
 
+        if (astronauta.isMoving()) {
+            poeiraTimer += delta;
+            if (poeiraTimer >= 0.08f) {
+                particleManager.play("poeira",
+                    astronauta.getPosition().x + 16,
+                    astronauta.getPosition().y + 40,
+                    0.9f);
+                alertaTimer = 0f;
+            }
+        }else {
+            alertaTimer = 0f;
+        }
+        if (astronauta.isMoving() && astronauta.getEnergia() < 40f) {
+            particleManager.play("rastro",
+                astronauta.getPosition().x + 16,
+                astronauta.getPosition().y + 10,
+                0.6f);
+        }
+
         // HUD
         hud.render(batch, astronauta, camera.position.x, camera.position.y);
     }
@@ -139,6 +197,7 @@ public class GameScreen implements Screen {
     public void dispose() {
         if (astronauta != null) astronauta.dispose();
         if (hud != null) hud.dispose();
+        if (particleManager != null) particleManager.dispose();
         for (Item item : itens) {
             if (item != null) item.dispose();
         }
