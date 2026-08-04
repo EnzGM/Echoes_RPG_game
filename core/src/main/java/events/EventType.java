@@ -1,0 +1,22 @@
+package events;
+
+public enum EventType {
+
+    PLAYER_MOVED,
+
+    PLAYER_COLLIDED_OBSTACLE,
+
+    PLAYER_COLLIDED_WALL,
+
+    OXYGEN_CRITICAL,
+
+    OXYGEN_DEPLETED,
+
+    ITEM_COLLECTED,
+
+    PHASE_CHANGED,
+
+    PLAYER_DIED,
+
+    PORTAL_ENTERED
+}
