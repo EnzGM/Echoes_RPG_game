@@ -10,7 +10,6 @@ import com.badlogic.gdx.utils.ObjectMap;
 public class ParticleManager {
 
     private final ObjectMap<String, ParticleEffectPool> pools;
-
     private final Array<ParticleEffectPool.PooledEffect> activeEffects;
 
     public ParticleManager() {
@@ -28,22 +27,23 @@ public class ParticleManager {
         Gdx.app.log("ParticleManager", "Efeito carregado: " + name);
     }
 
-
     public void play(String name, float x, float y) {
         ParticleEffectPool pool = pools.get(name);
         if (pool == null) {
             Gdx.app.error("ParticleManager", "Efeito não encontrado: " + name);
             return;
         }
-        ParticleEffectPool. PooledEffect effect = pool.obtain();
+
+        ParticleEffectPool.PooledEffect effect = pool.obtain();
         effect.setPosition(x, y);
         effect.start();
         activeEffects.add(effect);
     }
 
-    public  void play(String name, float x, float y, float scale) {
+    public void play(String name, float x, float y, float scale) {
         ParticleEffectPool pool = pools.get(name);
         if (pool == null) return;
+
 
         ParticleEffectPool.PooledEffect effect = pool.obtain();
         effect.setPosition(x, y);
@@ -53,7 +53,7 @@ public class ParticleManager {
     }
 
     public void update(float delta) {
-        for (int i = activeEffects.size - 1; i >= 0; i--){
+        for (int i = activeEffects.size - 1; i >= 0; i--) {
             ParticleEffectPool.PooledEffect effect = activeEffects.get(i);
             effect.update(delta);
 
@@ -64,19 +64,19 @@ public class ParticleManager {
         }
     }
 
-
     public void render(SpriteBatch batch) {
-        for (ParticleEffectPool.PooledEffect effect: activeEffects) {
+        for (ParticleEffectPool.PooledEffect effect : activeEffects) {
             effect.draw(batch);
         }
     }
+
     public void dispose() {
         for (ParticleEffectPool.PooledEffect effect : activeEffects) {
             effect.free();
         }
         activeEffects.clear();
 
-        for (ParticleEffectPool pool : pools.values()) {
+        for (ParticleEffectPool pool : pools.values()){
             pool.clear();
         }
         pools.clear();

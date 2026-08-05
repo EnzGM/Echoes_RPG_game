@@ -55,7 +55,7 @@ scalingCount: 1
 scaling0: 1.0
 timelineCount: 1
 timeline0: 0.0
-- Scale -
+- X Scale -
 lowMin: 0.0
 lowMax: 0.0
 highMin: 5.0
@@ -65,6 +65,8 @@ scalingCount: 1
 scaling0: 1.0
 timelineCount: 1
 timeline0: 0.0
+- Y Scale -
+active: false
 - Velocity -
 active: true
 lowMin: 0.0
@@ -106,7 +108,7 @@ lowMax: 0.0
 highMin: 1.0
 highMax: 1.0
 relative: false
-scalingCount: 3
+scalingCount:3
 scaling0: 0.0
 scaling1: 0.8
 scaling2: 0.0

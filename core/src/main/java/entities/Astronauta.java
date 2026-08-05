@@ -2,66 +2,88 @@ package entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
 import managers.AssetManager;
+import physics.PhysicsWorld;
 
 public class Astronauta extends Entidade implements Interagivel {
     private float oxigenio = 100f;
     private float energia = 100f;
-    private float speed = 200f;
+    private float speed = 100f;
     private final Sprite sprite;
     private boolean protegido = false;
     private boolean viradoEsquerda = false;
-    private float tempoVivo = 0f; // Tempo de sobrevivência
+    private float tempoVivo = 0f;
+    private Body body;
+    private PhysicsWorld physicsWorld; // Tempo de sobrevivência
 
-    public Astronauta(float x, float y, AssetManager assets) {
+    public Astronauta(float x, float y, AssetManager assets, PhysicsWorld physicsWorld) {
         super(x, y, 32, 48);
-        this.sprite = new Sprite(assets.astronautaTexture);
-        this.sprite.setSize(32, 48);
+        this.physicsWorld = physicsWorld;
+
+        Texture texture = new Texture(Gdx.files.internal("textures/astronauta.png"));
+        sprite = new Sprite(texture);
+        sprite.setSize(width, height);
+        sprite.setPosition(x, y);
+
+        position.set(x, y);
+        bounds.set(x, y, width, height);
+        ativo = true;
+
+        body = physicsWorld.createDynamicBody(
+            x + width / 2f,
+            y + height / 2f,
+            width,
+            height,
+            "ASTRONAUTA"
+        );
+    }
+
+    public void move(float dirX, float dirY, float delta) {
+        if (!ativo || body == null) return;
+
+        if (dirX < 0) viradoEsquerda = true;
+        else if (dirX > 0) viradoEsquerda = false;
+
+        sprite.setFlip(viradoEsquerda, false);
+
+        float velocityX = dirX * speed / PhysicsWorld.PPM;
+        float velocityY = dirY * speed / PhysicsWorld.PPM;
+
+        body.setLinearVelocity(velocityX, velocityY);
+
+        Vector2 bodyPos = body.getPosition();
+        position.set(
+            bodyPos.x * PhysicsWorld.PPM - width / 2f,
+            bodyPos.y * PhysicsWorld.PPM - height /2f
+        );
+
+        sprite.setPosition(position.x, position.y);
+        bounds.setPosition(position.x, position.y);
+
+        if (dirX != 0 || dirY != 0) {
+            energia -= 2.5f * delta;
+            if (!protegido) {
+                oxigenio -= 1.5f * delta;
+            }
+        }
     }
 
     @Override
     public void update(float delta) {
         if (!ativo) return;
-        velocity.set(0, 0);
 
-        if (Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP)) velocity.y = speed;
-        if (Gdx.input.isKeyPressed(Input.Keys.S) || Gdx.input.isKeyPressed(Input.Keys.DOWN)) velocity.y = -speed;
-        if (Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            velocity.x = -speed;
-            viradoEsquerda = true;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-            velocity.x = speed;
-            viradoEsquerda = false;
-        }
-
-        if (velocity.len() > 0) {
-            velocity.nor().scl(speed);
-            energia -= 2.5f * delta; // gasta energia ao andar
-        }
-
-        // Flip do sprite
-        if (viradoEsquerda) {
-            sprite.setFlip(true, false);
-        } else {
-            sprite.setFlip(false, false);
-        }
-
-        position.add(velocity.x * delta, velocity.y * delta);
-        bounds.setPosition(position);
-        sprite.setPosition(position.x, position.y);
-
-        // Consumo de oxigênio
-        if (!protegido) {
-            oxigenio -= 4.5f * delta;
-        }
-
-        // Tempo vivo
         tempoVivo += delta;
 
-        // Limites
+        if (!protegido) {
+            oxigenio -= 3.0f * delta;
+        }
+
         if (oxigenio <= 0) {
             oxigenio = 0;
             ativo = false;
@@ -70,10 +92,6 @@ public class Astronauta extends Entidade implements Interagivel {
             energia = 0;
             ativo = false;
         }
-    }
-
-    public void setProtegido(boolean protegido) {
-        this.protegido = protegido;
     }
 
     @Override
@@ -85,6 +103,26 @@ public class Astronauta extends Entidade implements Interagivel {
 
     @Override
     public void dispose() {}
+
+    public Body getBody() {
+        return body;
+    }
+
+    public Vector2 getPosition() {
+        return position;
+    }
+
+    public Rectangle getBounds() {
+        return bounds;
+    }
+
+    public boolean isMoving() {
+        return body != null && body.getLinearVelocity().len() > 0.4f;
+    }
+
+    public void setProtegido(boolean protegido) {
+        this.protegido = protegido;
+    }
 
     @Override
     public void interagir(Entidade outra) {}
@@ -108,9 +146,5 @@ public class Astronauta extends Entidade implements Interagivel {
 
     public boolean isMorto() {
         return !ativo;
-    }
-
-    public boolean isMoving() {
-        return velocity.len() > 5f;
     }
 }
