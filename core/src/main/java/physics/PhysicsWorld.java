@@ -2,21 +2,20 @@ package physics;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.utils.Array;
 
 public class PhysicsWorld {
 
     public static final float GRAVITY_LUA = -1.62f;
-
-    public static final float GRAVITY_MARTE = -3.7f;
+    public static final float GRAVITY_MARTE = -3.71f;
 
     private World world;
-
     private float currentGravity = GRAVITY_MARTE;
 
     public static final float PPM = 32f;
 
-    public PhysicsWorld(){
-        world = new World(new Vector2(0,currentGravity), true);
+    public PhysicsWorld() {
+        world = new World(new Vector2(0, currentGravity), true);
         world.setContactListener(new CollisionListener());
     }
 
@@ -30,30 +29,33 @@ public class PhysicsWorld {
 
     public void setGravity(float gravity) {
         this.currentGravity = gravity;
-        world.setGravity(new Vector2(0,gravity));
+        world.setGravity(new Vector2(0, gravity));
     }
+
     public float getCurrentGravity() {
         return currentGravity;
     }
 
     public void setPhaseGravity(String phase) {
-        if ("LUA".equalsIgnoreCase(phase)){
+        if ("LUA".equalsIgnoreCase(phase)) {
             setGravity(GRAVITY_LUA);
         } else {
             setGravity(GRAVITY_MARTE);
         }
     }
 
+    // Criação de Corpos
+
     public Body createDynamicBody(float x, float y, float width, float height, Object userData) {
         BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.StaticBody;
+        bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.position.set(x / PPM, y / PPM);
         bodyDef.fixedRotation = true;
 
         Body body = world.createBody(bodyDef);
 
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox((width/2f) / PPM, (height / 2f) / PPM);
+        shape.setAsBox((width / 2f) / PPM, (height / 2f) / PPM);
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
@@ -97,7 +99,7 @@ public class PhysicsWorld {
         Body body = world.createBody(bodyDef);
 
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox((width / 2f) / PPM, (height / 2f) /PPM);
+        shape.setAsBox((width / 2f) / PPM, (height / 2f) / PPM);
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;

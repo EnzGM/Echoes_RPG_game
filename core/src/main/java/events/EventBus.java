@@ -23,6 +23,7 @@ public class EventBus {
         }
         return instance;
     }
+
     public void subscribe(EventType type, EventListener listener) {
         Array<EventListener> list = listeners.get(type);
         if (list == null) {
