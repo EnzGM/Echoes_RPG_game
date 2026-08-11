@@ -8,13 +8,13 @@ import screens.MenuScreen;
 public class EchoesMarsGame extends Game {
     private SpriteBatch batch;
     private AssetManager assets;
+    public boolean deveCarregarSave = false;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
         assets = new AssetManager();
-        assets.load(); // Carrega todas as texturas
-        // Começa no Menu
+        assets.load();
         setScreen(new MenuScreen(this, batch, assets));
     }
 

@@ -25,6 +25,8 @@ import input.GameInputProcessor;
 import managers.AssetManager;
 import managers.ParticleManager;
 import physics.PhysicsWorld;
+import save.GameSaveData;
+import save.SaveManager;
 
 public class GameScreen implements Screen, EventBus.EventListener {
     private final EchoesMarsGame game;
@@ -37,6 +39,7 @@ public class GameScreen implements Screen, EventBus.EventListener {
     private PhysicsWorld physicsWorld;
     private GameInputProcessor inputProcessor;
     private EventBus eventBus;
+    private SaveManager saveManager;
     private Array<Item> itens;
     private Array<Obstacle> obstacles;
     private Hud hud;
@@ -48,7 +51,8 @@ public class GameScreen implements Screen, EventBus.EventListener {
     private float alertaTimer = 0f;
     private Item abrigo = null;
     private boolean pausado = false;
-    private final float TEMPO_VITORIA = 60f; // 60 segundos para vencer
+    private final float TEMPO_VITORIA = 60f;
+    private float saveFeedbackTimer = 0f;
 
     public GameScreen(EchoesMarsGame game, SpriteBatch batch, AssetManager assets) {
         this.game = game;
@@ -71,9 +75,16 @@ public class GameScreen implements Screen, EventBus.EventListener {
         eventBus.subscribe(EventType.PORTAL_ENTERED, this);
         eventBus.subscribe(EventType.PLAYER_DIED, this);
 
+        saveManager = new SaveManager();
+
         astronauta = new Astronauta(200, 200, assets, physicsWorld);
         camera = new OrthographicCamera();
         viewport = new FitViewport(1280, 720, camera);
+
+        if (game.deveCarregarSave) {
+            carregarJogo();
+            game.deveCarregarSave = false;
+        }
 
         itens = new Array<>();
         itens.add(new Item(400, 300, "oxigenio", assets));
@@ -147,13 +158,31 @@ public class GameScreen implements Screen, EventBus.EventListener {
             assets.font.setColor(0.8f, 0.8f, 0.7f, 1f);
             assets.font.draw(batch, "Pressione ESC para continuar", 470, 330);
             batch.end();
+            if (Gdx.input.isKeyJustPressed(Input.Keys.L)){
+                if (saveManager.hasSave()) {
+                    carregarJogo();
+                    pausado = false;
+                }
+            }
+
+            if (Gdx.input.isKeyJustPressed(Input.Keys.M)) {
+                game.setScreen(new MenuScreen(game, batch, assets));
+            }
+
+            if (Gdx.input.isKeyJustPressed(Input.Keys.F5)) {
+                salvarJogo();
+            }
             return;
         }
 
         if (obstacleCooldown > 0f) {
             obstacleCooldown -= delta;
         }
+        if (saveFeedbackTimer > 0f) saveFeedbackTimer -= delta;
 
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F5)) {
+            salvarJogo();
+        }
         physicsWorld.update(delta);
 
         Vector2 dir = inputProcessor.getDirection();
@@ -283,6 +312,15 @@ public class GameScreen implements Screen, EventBus.EventListener {
 
         hud.render(batch, astronauta, camera.position.x, camera.position.y);
 
+        if (saveFeedbackTimer > 0f) {
+            batch.begin();
+            assets.font.getData().setScale(1.3f);
+            assets.font.setColor(0.3f, 1f, 05f, 1f);
+            assets.font.draw(batch, "PROGRESSO SALVO / CARREGADO!",
+                camera.position.x - 140, camera.position.y + 280);
+            batch.end();
+        }
+
         if (astronauta.isMorto()) {
             particleManager.play("explosao",
             astronauta.getPosition().x + 16,
@@ -293,6 +331,29 @@ public class GameScreen implements Screen, EventBus.EventListener {
 
         if (astronauta.getTempoVivo() >= TEMPO_VITORIA) {
             game.setScreen(new VictoryScreen(game, batch, assets, astronauta.getTempoVivo()));
+        }
+    }
+
+    private void salvarJogo() {
+        if (astronauta == null) return;
+        GameSaveData data = astronauta.toSaveData(currentPhase);
+        saveManager.save(data);
+        saveFeedbackTimer = 2.0f;
+        Gdx.app.log("GameScreen", "Jogo Salvo!");
+    }
+
+    private void carregarJogo() {
+        if (!saveManager.hasSave()) {
+            Gdx.app.log("GameScreen", "Nenhum save encontrado.");
+            return;
+        }
+        GameSaveData data = saveManager.load();
+        if (data != null) {
+            astronauta.fromSaveData(data);
+            currentPhase = data.fase !=null ? data.fase : "MARTE";
+            physicsWorld.setPhaseGravity(currentPhase);
+            saveFeedbackTimer = 2.0f;
+            Gdx.app.log( "GameScreen", "Progresso carregado ! Fase: " + currentPhase);
         }
     }
 
