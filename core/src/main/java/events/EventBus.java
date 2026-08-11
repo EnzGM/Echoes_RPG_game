@@ -5,7 +5,7 @@ import com.badlogic.gdx.utils.ObjectMap;
 
 public class EventBus {
 
-    public interface EventListener {
+    public interface EventListener{
         void onEvent(GameEvent event);
     }
 
@@ -30,12 +30,12 @@ public class EventBus {
             list = new Array<>();
             listeners.put(type,list);
         }
-        if (!list.contains(listener, true)) {
+        if (!list.contains(listener, true)){
             list.add(listener);
         }
     }
 
-    public void unsubscribe(EventType type, EventListener listener) {
+    public void unsubscribe( EventType type, EventListener listener) {
         Array<EventListener> list = listeners.get(type);
         if (list != null) {
             list.removeValue(listener, true);
@@ -44,15 +44,14 @@ public class EventBus {
 
     public void publish(GameEvent event) {
         Array<EventListener> list = listeners.get(event.getType());
-        if (list != null) {
+        if ( list != null) {
             Array<EventListener> copy = new Array<>(list);
             for (EventListener listener : copy) {
                 listener.onEvent(event);
             }
         }
     }
-
-    public void publish(EventType type) {
+    public  void publish(EventType type){
         publish(new GameEvent(type));
     }
 

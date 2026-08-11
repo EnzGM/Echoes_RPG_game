@@ -60,5 +60,3 @@ public class CollisionListener implements ContactListener {
         return data != null && data.toString().equalsIgnoreCase("PORTAL");
     }
 }
-
-

@@ -10,20 +10,27 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import managers.AssetManager;
 import physics.PhysicsWorld;
+import save.GameSaveData;
 
 public class Astronauta extends Entidade implements Interagivel {
+
+    //Status
     private float oxigenio = 100f;
     private float energia = 100f;
     private float speed = 100f;
-    private final Sprite sprite;
     private boolean protegido = false;
     private boolean viradoEsquerda = false;
     private float tempoVivo = 0f;
+
+    private final Sprite sprite;
     private Body body;
-    private PhysicsWorld physicsWorld; // Tempo de sobrevivência
+    private PhysicsWorld physicsWorld;
+
+    private final float width = 48f;
+    private final float height = 64f;
 
     public Astronauta(float x, float y, AssetManager assets, PhysicsWorld physicsWorld) {
-        super(x, y, 32, 48);
+        super(x, y, 48f, 64f);
         this.physicsWorld = physicsWorld;
 
         Texture texture = new Texture(Gdx.files.internal("textures/astronauta.png"));
@@ -96,9 +103,44 @@ public class Astronauta extends Entidade implements Interagivel {
 
     @Override
     public void render(SpriteBatch batch) {
-        if (ativo) {
+        if (ativo && sprite != null) {
             sprite.draw(batch);
         }
+    }
+
+    public GameSaveData toSaveData( String faseAtual) {
+        GameSaveData data = new GameSaveData();
+        data.posX = position.x;
+        data.posY = position.y;
+        data.oxigenio = oxigenio;
+        data.energia = energia;
+        data.tempoVivo = tempoVivo;
+        data.fase = faseAtual;
+        data.versao = 1;
+        return data;
+    }
+
+    public void fromSaveData(GameSaveData data) {
+        if (data == null) return;
+
+        position.set(data.posX, data.posY);
+
+        if (sprite != null) {
+            sprite.setPosition(data.posX, data.posY);
+        }
+
+        if (body != null) {
+            body.setTransform(
+                (data.posX + width / 2f) / PhysicsWorld.PPM,
+                (data.posY + height / 2f) / PhysicsWorld.PPM,
+                0
+            );
+            body.setLinearVelocity(0,0);
+        }
+        oxigenio = data.oxigenio;
+        energia = data.energia;
+        tempoVivo = data.tempoVivo;
+        ativo = true;
     }
 
     @Override
