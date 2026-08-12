@@ -3,8 +3,7 @@ package save;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter;
-
-import java.util.prefs.Preferences;
+import com.badlogic.gdx.Preferences;
 
 public class SaveManager {
 
@@ -32,7 +31,7 @@ public class SaveManager {
             prefs.putBoolean(KEY_HAS_SAVE, true);
             prefs.putString(KEY_SAVE_DATA, jsonString);
             prefs.putLong(KEY_LAST_SAVE_TIME, System.currentTimeMillis());
-            prefs.putInt(KEY_VERSION, data.versao);
+            prefs.putInteger(KEY_VERSION, data.versao);
             prefs.flush();
 
             Gdx.app.log("SaveManager", "Jogo salvo com sucesso!");
