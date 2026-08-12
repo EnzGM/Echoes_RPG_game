@@ -25,7 +25,7 @@ public class MenuScreen implements Screen {
     private ShapeRenderer shapeRenderer;
     private BitmapFont font;
     private static final  float WORLD_WIDTH = 1280f;
-    private static final float WORLD_HEIGHT = 720;
+    private static final float WORLD_HEIGHT = 720f;
 
     private final float btnWidth = 320f;
 
@@ -75,13 +75,15 @@ public class MenuScreen implements Screen {
         }else {
             shapeRenderer.setColor(0.3f, 0.3f, 0.32f, 1f);
         }
-        shapeRenderer.rect(btnX, btnContinuarY, btnWidth,btnWidth);
+        shapeRenderer.rect(btnX, btnContinuarY, btnWidth,btnHeight);
 
         shapeRenderer.setColor(0.6f, 0.2f, 0.2f, 1f);
         shapeRenderer.rect(btnX, btnSairY, btnWidth, btnHeight);
 
         shapeRenderer.end();
 
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
         // Titulo
         font.getData().setScale(2.8f);
         font.setColor(1f, 0.9f, 0.6f, 1f);
@@ -94,14 +96,14 @@ public class MenuScreen implements Screen {
         // Subtitulo
         font.getData().setScale(1.2f);
         font.setColor(0.8f, 0.75f, 0.6f, 1f);
-        font.draw(batch, "Base Orion - Missao de Sobrevivencia", 400, 460);
+        font.draw(batch, "Base Orion - Missao de Sobrevivencia", 400, 490);
 
         font.getData().setScale(1.5f);
         font.setColor(1f,1f,1f,1f);
         font.draw(batch, "NOVO JOGO", btnX + 70,btnNovoY + 45);
 
         if (saveManager.hasSave()) {
-            font.draw(batch, "CONTINUAR", btnX + 70, btnNovoY + 45);
+            font.draw(batch, "CONTINUAR", btnX + 70, btnContinuarY + 45);
 
             font.getData().setScale(0.9f);
             font.setColor(0.7f, 0.95f, 0.7f, 1f);
